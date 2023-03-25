@@ -26,6 +26,11 @@ jobs:
         run: |
           git diff-tree --no-commit-id --name-only -r ${{ github.sha }}  | grep "jobs/" | awk -F '/' '{print $2}' | sort -u >> ~/jobs_modified.txt
           cat ~/jobs_modified.txt
+          if [ -s ~/jobs_modified.txt ]; then
+                  echo "~/jobs_modified.txt is not empty"
+          else
+                  echo "~/jobs_modified.txt is not empty"
+          fi
       # - name: Upload code to S3
       #   run: aws s3 sync yahoo-finance/ s3://ladubief-glue-scripts/yahoo-finance/ --region us-east-1
       # - name: Create dummy jobs_modified.txt
