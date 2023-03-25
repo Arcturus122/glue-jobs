@@ -22,13 +22,13 @@ jobs:
           echo "[default]
           aws_access_key_id = $AWS_ACCESS_KEY_ID
           aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
-      - name: Upload code to S3
-        run: aws s3 sync yahoo-finance/ s3://ladubief-glue-scripts/yahoo-finance/ --region us-east-1
-      - name: Create dummy jobs_modified.txt
-        run: echo "yahoo-finance" > ~/jobs_modified.txt
-      - name: Upload jobs_modified.txt to s3
-        run: aws s3 cp ~/jobs_modified.txt s3://ladubief-glue-scripts/ --region us-east-1
-      - name: Cleanup
-        run: |
-          rm -rf ~/.aws
-          rm -rf ~/jobs_modified.txt
+      # - name: Upload code to S3
+      #   run: aws s3 sync yahoo-finance/ s3://ladubief-glue-scripts/yahoo-finance/ --region us-east-1
+      # - name: Create dummy jobs_modified.txt
+      #   run: echo "yahoo-finance" > ~/jobs_modified.txt
+      # - name: Upload jobs_modified.txt to s3
+      #   run: aws s3 cp ~/jobs_modified.txt s3://ladubief-glue-scripts/ --region us-east-1
+      # - name: Cleanup
+      #   run: |
+      #     rm -rf ~/.aws
+      #     rm -rf ~/jobs_modified.txt
