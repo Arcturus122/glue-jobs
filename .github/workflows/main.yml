@@ -22,9 +22,9 @@ jobs:
           echo "[default]
           aws_access_key_id = $AWS_ACCESS_KEY_ID
           aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
-      - name: Modified jobs
+      - name: Create modified_jobs.txt
         run: |
-          git show --pretty="" --name-only $GITHUB_SHA | grep "jobs/" | awk -F '/' '{print $2}' | sort -u >> ~/jobs_modified.txt
+          git diff-tree --no-commit-id --name-only -r ${{ github.sha }}  | grep "jobs/" | awk -F '/' '{print $2}' | sort -u >> ~/jobs_modified.txt
           cat ~/jobs_modified.txt
       # - name: Upload code to S3
       #   run: aws s3 sync yahoo-finance/ s3://ladubief-glue-scripts/yahoo-finance/ --region us-east-1
@@ -32,7 +32,7 @@ jobs:
       #   run: echo "yahoo-finance" > ~/jobs_modified.txt
       # - name: Upload jobs_modified.txt to s3
       #   run: aws s3 cp ~/jobs_modified.txt s3://ladubief-glue-scripts/ --region us-east-1
-      # - name: Cleanup
-      #   run: |
-      #     rm -rf ~/.aws
-      #     rm -rf ~/jobs_modified.txt
+      - name: Cleanup
+        run: |
+          rm -rf ~/.aws
+          rm -rf ~/jobs_modified.txt
