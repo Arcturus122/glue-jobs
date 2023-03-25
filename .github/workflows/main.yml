@@ -8,7 +8,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Install AWS CLI
         uses: unfor19/install-aws-cli-action@v1
       - name: Set up AWS credentials
@@ -22,21 +25,20 @@ jobs:
           echo "[default]
           aws_access_key_id = $AWS_ACCESS_KEY_ID
           aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
-      - name: Create modified_jobs.txt
+      - name: Create modified_jobs.txt and synchronize jobs files
         run: |
-          git diff-tree --no-commit-id --name-only -r ${{ github.sha }}  | grep "jobs/" | awk -F '/' '{print $2}' | sort -u >> ~/jobs_modified.txt
-          cat ~/jobs_modified.txt
-          if [ -s ~/jobs_modified.txt ]; then
-                  echo "~/jobs_modified.txt is not empty"
+          git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | grep "jobs/" | awk -F '/' '{print $2}' | sort -u > ~/jobs_modified.txt
+          readarray -t arr < ~/jobs_modified.txt
+          if [ ${#arr[@]} -gt 0 ]; then
+            echo "${#arr[@]} to update"
+            for job in "${arr[@]}"
+            do
+              aws s3 sync "./jobs/${job}/" "s3://ladubief-glue-scripts/${job}" --region us-east-1
+            done
+            aws s3 cp ~/jobs_modified.txt s3://ladubief-glue-scripts/ --region us-east-1
           else
-                  echo "~/jobs_modified.txt is not empty"
+            echo "No job to update"
           fi
-      # - name: Upload code to S3
-      #   run: aws s3 sync yahoo-finance/ s3://ladubief-glue-scripts/yahoo-finance/ --region us-east-1
-      # - name: Create dummy jobs_modified.txt
-      #   run: echo "yahoo-finance" > ~/jobs_modified.txt
-      # - name: Upload jobs_modified.txt to s3
-      #   run: aws s3 cp ~/jobs_modified.txt s3://ladubief-glue-scripts/ --region us-east-1
       - name: Cleanup
         run: |
           rm -rf ~/.aws
