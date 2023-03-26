@@ -7,5 +7,9 @@
     "GlueVersion": "3.0",
     "NumberOfWorkers": 2,
     "WorkerType": "G.025X",
-    "Timeout": 5
+    "Timeout": 5,
+    "Command": {
+        "Name": "gluestreaming",
+        "PythonVersion": "3"
+    }
 }
