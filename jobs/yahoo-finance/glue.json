@@ -6,6 +6,6 @@
     },
     "GlueVersion": "3.0",
     "NumberOfWorkers": 2,
-    "WorkerType": "Standard",
-    "Timeout": 60
+    "WorkerType": "G.025X",
+    "Timeout": 5
 }
