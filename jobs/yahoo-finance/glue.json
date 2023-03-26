@@ -11,6 +11,5 @@
     "Command": {
         "Name": "gluestreaming",
         "PythonVersion": "3"
-    },
-    "Schedule": "cron(0 6 ? * TUE-SAT *)"
+    }
 }
