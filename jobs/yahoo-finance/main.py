@@ -42,5 +42,3 @@ if __name__ == "__main__":
         .sort_index()
     )
     data.dropna(inplace=True)
-
-# dummy comment
