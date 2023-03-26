@@ -1,0 +1,16 @@
+{
+    "MaxRetries": 1,
+    "Description": "Get commodity prices from Yahoo finance",
+    "ExecutionProperty": {
+        "MaxConcurrentRuns": 1
+    },
+    "GlueVersion": "3.0",
+    "NumberOfWorkers": 2,
+    "WorkerType": "G.025X",
+    "Timeout": 5,
+    "Command": {
+        "Name": "gluestreaming",
+        "PythonVersion": "3"
+    },
+    "Schedule": "cron(0 6 ? * TUE-SAT *)"
+}

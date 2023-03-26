@@ -42,6 +42,3 @@ if __name__ == "__main__":
         .sort_index()
     )
     data.dropna(inplace=True)
-
-
-# dummy code to make sure the script runs
