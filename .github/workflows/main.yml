@@ -1,3 +1,7 @@
+permissions:
+  id-token: write # required to use OIDC authentication
+  contents: read # required to checkout the code from the repo
+
 name: deploy
 on:
   push:
@@ -14,17 +18,12 @@ jobs:
           fetch-depth: 0
       - name: Install AWS CLI
         uses: unfor19/install-aws-cli-action@v1
-      - name: Set up AWS credentials
-        shell: bash
-        env:
-          AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-        run: |
-          mkdir -p ~/.aws
-          touch ~/.aws/credentials
-          echo "[default]
-          aws_access_key_id = $AWS_ACCESS_KEY_ID
-          aws_secret_access_key = $AWS_SECRET_ACCESS_KEY" > ~/.aws/credentials
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::463720542314:role/GlueJobsGithubActionRole
+          role-duration-seconds: 900
+          aws-region: us-east-1
       - name: Create modified_jobs.txt and synchronize jobs files
         run: |
           git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | grep "jobs/" | awk -F '/' '{print $2}' | sort -u > ~/jobs_modified.txt

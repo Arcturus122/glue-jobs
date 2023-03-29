@@ -39,7 +39,7 @@ if __name__ == "__main__":
         "url": "jdbc:postgresql://ladubief-postgre-db-1.cywjasf2p0qq.us-east-1.rds.amazonaws.com:5432/ladubief",
         "dbtable": "integration.dummy_data",
         "user": "ladubief",
-        "password": "Dubief-74600"
+        "password": "Dubief-74600",
     }
 
     # fetching data and creating dataframe
@@ -63,19 +63,21 @@ if __name__ == "__main__":
     )
     data.dropna(inplace=True)
     data.insert(1, "commodity", data["ticker"].map({v: k for k, v in tickers.items()}))
-    col_spark = StructType([
-        StructField("date", DateType(), True),
-        StructField("commodity", StringType(), True),
-        StructField("ticker", StringType(), True),
-        StructField("metric", StringType(), True),
-        StructField("value", FloatType(), True),
-    ])
+    col_spark = StructType(
+        [
+            StructField("date", DateType(), True),
+            StructField("commodity", StringType(), True),
+            StructField("ticker", StringType(), True),
+            StructField("metric", StringType(), True),
+            StructField("value", FloatType(), True),
+        ]
+    )
     spark_data = spark.createDataFrame(data, schema=col_spark)
     glue_df = DynamicFrame.fromDF(spark_data, glueContext, "yahoo_finance")
 
     # writing data to postgresql
     logger.info("Writing data to PostgreSQL")
-    connection_postgresql_options['dbtable'] = "integration.yahoo_finance"
+    connection_postgresql_options["dbtable"] = "integration.yahoo_finance"
     glueContext.write_dynamic_frame_from_options(
         frame=glue_df,
         connection_type="postgresql",
@@ -83,4 +85,3 @@ if __name__ == "__main__":
     )
 
     logger.info("Job finished")
-    
