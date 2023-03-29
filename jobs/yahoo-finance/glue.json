@@ -1,5 +1,5 @@
 {
-    "MaxRetries": 1,
+    "MaxRetries": 0,
     "Description": "Get commodity prices from Yahoo finance",
     "ExecutionProperty": {
         "MaxConcurrentRuns": 1
@@ -7,7 +7,7 @@
     "GlueVersion": "3.0",
     "NumberOfWorkers": 2,
     "WorkerType": "G.025X",
-    "Timeout": 3,
+    "Timeout": 5,
     "Command": {
         "Name": "gluestreaming",
         "PythonVersion": "3"

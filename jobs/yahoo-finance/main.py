@@ -1,11 +1,10 @@
 import yfinance as yf
+from awsglue.dynamicframe import DynamicFrame
 from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext, SparkConf
+from pyspark.context import SparkContext
 from awsglue.context import GlueContext
-from awsglue.job import Job
-import time
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType
+from pyspark.sql.types import StructField, StructType, StringType, DateType, FloatType
+
 
 tickers = {
     "Brent": "BZ=F",
@@ -32,35 +31,56 @@ tickers = {
 }
 
 if __name__ == "__main__":
-    # data = yf.download(list(tickers.values()), period="max", interval="1d")
-    # data = (
-    #     data.unstack(level=0)
-    #     .to_frame()
-    #     .reset_index()
-    #     .rename(
-    #         columns={
-    #             "level_0": "metric",
-    #             0: "value",
-    #             "level_1": "ticker",
-    #             "Date": "date",
-    #         }
-    #     )
-    #     .set_index(["date", "ticker", "metric"])
-    #     .sort_index()
-    # )
-    # data.dropna(inplace=True)
     sc = SparkContext()
     glueContext = GlueContext(sc)
+    logger = glueContext.get_logger()
     spark = glueContext.spark_session
-
     connection_postgresql_options = {
         "url": "jdbc:postgresql://ladubief-postgre-db-1.cywjasf2p0qq.us-east-1.rds.amazonaws.com:5432/ladubief",
         "dbtable": "integration.dummy_data",
         "user": "ladubief",
         "password": "Dubief-74600"
     }
-    df = glueContext.create_dynamic_frame.from_options(connection_type="postgresql",
-                                                          connection_options=connection_postgresql_options)
-    
-    print(df.head())
+
+    # fetching data and creating dataframe
+    logger.info("Fetching data from Yahoo Finance")
+    data = yf.download(list(tickers.values()), period="max", interval="1d")
+    data = (
+        data.unstack(level=0)
+        .to_frame()
+        .reset_index()
+        .rename(
+            columns={
+                "level_0": "metric",
+                0: "value",
+                "level_1": "ticker",
+                "Date": "date",
+            }
+        )
+        .set_index(["date", "ticker", "metric"])
+        .sort_index()
+        .reset_index()
+    )
+    data.dropna(inplace=True)
+    data.insert(1, "commodity", data["ticker"].map({v: k for k, v in tickers.items()}))
+    col_spark = StructType([
+        StructField("date", DateType(), True),
+        StructField("commodity", StringType(), True),
+        StructField("ticker", StringType(), True),
+        StructField("metric", StringType(), True),
+        StructField("value", FloatType(), True),
+    ])
+    spark_data = spark.createDataFrame(data, schema=col_spark)
+    glue_df = DynamicFrame.fromDF(spark_data, glueContext, "yahoo_finance")
+
+    # writing data to postgresql
+    logger.info("Writing data to PostgreSQL")
+    connection_postgresql_options['dbtable'] = "integration.yahoo_finance"
+    glueContext.write_dynamic_frame_from_options(
+        frame=glue_df,
+        connection_type="postgresql",
+        connection_options=connection_postgresql_options,
+    )
+
+    logger.info("Job finished")
     
