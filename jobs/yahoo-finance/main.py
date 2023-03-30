@@ -62,14 +62,26 @@ if __name__ == "__main__":
         .reset_index()
     )
     data.dropna(inplace=True)
+    data = (
+        data.pivot_table(index=["date", "ticker"], columns="metric", values="value")
+        .reset_index()
+        .drop(columns=["Adj Close"])
+    )
+    data.columns = data.columns.str.lower()
     data.insert(1, "commodity", data["ticker"].map({v: k for k, v in tickers.items()}))
+    data = data.loc[
+        :, ["date", "commodity", "ticker", "open", "high", "low", "close", "volume"]
+    ]
     col_spark = StructType(
         [
             StructField("date", DateType(), True),
             StructField("commodity", StringType(), True),
             StructField("ticker", StringType(), True),
-            StructField("metric", StringType(), True),
-            StructField("value", FloatType(), True),
+            StructField("open", FloatType(), True),
+            StructField("high", FloatType(), True),
+            StructField("low", FloatType(), True),
+            StructField("close", FloatType(), True),
+            StructField("volume", FloatType(), True),
         ]
     )
     spark_data = spark.createDataFrame(data, schema=col_spark)
@@ -83,5 +95,4 @@ if __name__ == "__main__":
         connection_type="postgresql",
         connection_options=connection_postgresql_options,
     )
-
     logger.info("Job finished")
